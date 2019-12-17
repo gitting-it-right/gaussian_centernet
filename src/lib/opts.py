@@ -11,7 +11,7 @@ class opts(object):
     self.parser = argparse.ArgumentParser()
     # basic experiment setting
     self.parser.add_argument('task', default='ctdet',
-                             help='ctdet | ddd | multi_pose | exdet')
+                             help='ctdet | ddd | multi_pose | exdet | gctdet')
     self.parser.add_argument('--dataset', default='coco',
                              help='coco | kitti | coco_hp | pascal')
     self.parser.add_argument('--exp_id', default='default')
@@ -61,7 +61,7 @@ class opts(object):
     self.parser.add_argument('--arch', default='dla_34', 
                              help='model architecture. Currently tested'
                                   'res_18 | res_101 | resdcn_18 | resdcn_101 |'
-                                  'dlav0_34 | dla_34 | hourglass')
+                                  'dlav0_34 | dla_34 | gdla_34 | hourglass')
     self.parser.add_argument('--head_conv', type=int, default=-1,
                              help='conv layer channels for output head'
                                   '0 for no conv layer'
@@ -244,7 +244,10 @@ class opts(object):
     opt.reg_hp_offset = (not opt.not_reg_hp_offset) and opt.hm_hp
 
     if opt.head_conv == -1: # init default head_conv
-      opt.head_conv = 256 if 'dla' in opt.arch else 64
+      if 'dla' in opt.arch or 'gdla' in opt.arch:
+        opt.head_conv = 256 
+      else:
+        opt.head_conv = 64
     opt.pad = 127 if 'hourglass' in opt.arch else 31
     opt.num_stacks = 2 if opt.arch == 'hourglass' else 1
 
@@ -313,6 +316,12 @@ class opts(object):
       if opt.reg_offset:
         opt.heads.update({'reg': 2})
     elif opt.task == 'ctdet':
+      # assert opt.dataset in ['pascal', 'coco']
+      opt.heads = {'hm': opt.num_classes,
+                   'wh': 2 if not opt.cat_spec_wh else 2 * opt.num_classes}
+      if opt.reg_offset:
+        opt.heads.update({'reg': 2})
+    elif opt.task == 'gctdet':
       # assert opt.dataset in ['pascal', 'coco']
       opt.heads = {'hm': opt.num_classes,
                    'wh': 2 if not opt.cat_spec_wh else 2 * opt.num_classes}
