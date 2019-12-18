@@ -23,7 +23,7 @@ from .base_detector import BaseDetector
 
 class GaussianCtdetDetector(BaseDetector):
   def __init__(self, opt):
-    super(CtdetDetector, self).__init__(opt)
+    super(GaussianCtdetDetector, self).__init__(opt)
   
   def process(self, images, return_time=False):
     with torch.no_grad():
@@ -37,6 +37,8 @@ class GaussianCtdetDetector(BaseDetector):
         reg = reg[0:1] if reg is not None else None
       torch.cuda.synchronize()
       forward_time = time.time()
+      wh = wh[:,:2,:,:]
+      reg = reg[:,:2,:,:]
       dets = ctdet_decode(hm, wh, reg=reg, cat_spec_wh=self.opt.cat_spec_wh, K=self.opt.K)
       
     if return_time:

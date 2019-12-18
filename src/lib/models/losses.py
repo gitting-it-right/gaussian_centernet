@@ -167,18 +167,25 @@ class NLL(nn.Module):
     target_ = target*mask
     eps = 1e-8
     mean1,mean2,var1,var2 = pred1_[:,:,0], pred1_[:,:,1], pred2_[:,:,0], pred2_[:,:,1]
+    val1, val2 = target_[:,:,0], target_[:,:,1]
+    mean1 , mean2 = (mean1).clamp(min=0) + eps, (mean2).clamp(min=0) + eps
+    var1 , var2 = (var1).clamp(min=0) + 3, (var2).clamp(min=0) + 3
     # print("Mean1 ",torch.min(mean1),torch.max(mean1))
     # print("Mean2 ",torch.min(mean2),torch.max(mean2))
     # print("var1 ",torch.min(var1),torch.max(var1))
     # print("var2 ",torch.min(var2),torch.max(var2))
-    mean1 , mean2 = (mean1).clamp(min=0) + eps, (mean2).clamp(min=0) + eps
-    var1 , var2 = (var1).clamp(min=0) + eps, (var2).clamp(min=0) + eps
-    val1, val2 = target_[:,:,0], target_[:,:,1]
+    # print("Mean1 ",(mean1))
+    # print("Mean2 ",(mean2))
+    # print("var1 ",(var1))
+    # print("var2 ",(var2))
+
+    # in_exp_x = (val1 - mean1) / var1
+    # in_exp_x2 = in_exp_x**2
+    # norm_dist_x = torch.exp((in_exp_x2 * -1./2.) / torch.sqrt(2.0 * torch.pi) * )
     gaussian1 = torch.distributions.normal.Normal(mean1,var1)
     gaussian2 = torch.distributions.normal.Normal(mean2,var2)
     loss =  -gaussian1.log_prob(val1) - gaussian2.log_prob(val2)
-    # loss = F.l1_loss(pred * mask, target * mask, size_average=False)
-    # loss = loss / (mask.sum() + 1e-4)
+    # print("Loss ",loss)
     return loss
 
 

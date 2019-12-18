@@ -84,7 +84,7 @@ class opts(object):
                              help='learning rate for batch size 32.')
     self.parser.add_argument('--lr_step', type=str, default='90,120',
                              help='drop learning rate by 10.')
-    self.parser.add_argument('--num_epochs', type=int, default=2,
+    self.parser.add_argument('--num_epochs', type=int, default=1,
                              help='total training epochs.')
     self.parser.add_argument('--batch_size', type=int, default=32,
                              help='batch size')
@@ -92,7 +92,7 @@ class opts(object):
                              help='batch size on the master gpu.')
     self.parser.add_argument('--num_iters', type=int, default=-1,
                              help='default: #samples / batch_size.')
-    self.parser.add_argument('--val_intervals', type=int, default=5,
+    self.parser.add_argument('--val_intervals', type=int, default=1,
                              help='number of epochs to run validation.')
     self.parser.add_argument('--trainval', action='store_true',
                              help='include validation in training and '
@@ -345,6 +345,9 @@ class opts(object):
   def init(self, args=''):
     default_dataset_info = {
       'ctdet': {'default_resolution': [512, 512], 'num_classes': 80, 
+                'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
+                'dataset': 'coco'},
+      'gctdet': {'default_resolution': [512, 512], 'num_classes': 80, 
                 'mean': [0.408, 0.447, 0.470], 'std': [0.289, 0.274, 0.278],
                 'dataset': 'coco'},
       'exdet': {'default_resolution': [512, 512], 'num_classes': 80, 
