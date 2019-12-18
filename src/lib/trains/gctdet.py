@@ -6,7 +6,7 @@ import torch
 import numpy as np
 
 from models.losses import FocalLoss
-from models.losses import RegL1Loss, RegLoss, NormRegL1Loss, RegWeightedL1Loss, NLL
+from models.losses import RegL1Loss, RegLoss, NormRegL1Loss, RegWeightedL1Loss , NLL
 from models.decode import ctdet_decode
 from models.utils import _sigmoid
 from utils.debugger import Debugger
@@ -16,22 +16,25 @@ from .base_trainer import BaseTrainer
 
 class GCtdetLoss(torch.nn.Module):
   def __init__(self, opt):
-    super(CtdetLoss, self).__init__()
+    super(GCtdetLoss, self).__init__()
     self.crit = torch.nn.MSELoss() if opt.mse_loss else FocalLoss()
     # self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
     #           RegLoss() if opt.reg_loss == 'sl1' else None
-    self.crit_reg = NLL() if opt.reg_loss == 'l1' else \
-              None if opt.reg_loss == 'sl1' else None
-    self.crit_wh = torch.nn.L1Loss(reduction='sum') if opt.dense_wh else \
-              NormRegL1Loss() if opt.norm_wh else \
-              RegWeightedL1Loss() if opt.cat_spec_wh else self.crit_reg
+    # print("INIT")
+    self.crit_reg = NLL()
+    self.crit_wh = NLL()
+    # self.crit_wh = torch.nn.L1Loss(reduction='sum') if opt.dense_wh else \
+    #           NormRegL1Loss() if opt.norm_wh else \
+    #           RegWeightedL1Loss() if opt.cat_spec_wh else self.crit_reg
     self.opt = opt
 
   def forward(self, outputs, batch):
+    # print("forw")
     opt = self.opt
     hm_loss, wh_loss, off_loss = 0, 0, 0
     for s in range(opt.num_stacks):
       output = outputs[s]
+      # print(output['hm'].shape,output['wh'].shape,output['reg'].shape)
       if not opt.mse_loss:
         output['hm'] = _sigmoid(output['hm'])
 
@@ -77,11 +80,11 @@ class GCtdetLoss(torch.nn.Module):
 
 class GCtdetTrainer(BaseTrainer):
   def __init__(self, opt, model, optimizer=None):
-    super(CtdetTrainer, self).__init__(opt, model, optimizer=optimizer)
+    super(GCtdetTrainer, self).__init__(opt, model, optimizer=optimizer)
   
   def _get_losses(self, opt):
     loss_states = ['loss', 'hm_loss', 'wh_loss', 'off_loss']
-    loss = CtdetLoss(opt)
+    loss = GCtdetLoss(opt)
     return loss_states, loss
 
   def debug(self, batch, output, iter_id):

@@ -435,6 +435,13 @@ class DLASeg(nn.Module):
         channels = self.base.channels
         scales = [2 ** i for i in range(len(channels[self.first_level:]))]
         self.dla_up = DLAUp(self.first_level, channels[self.first_level:], scales)
+        # print(self.base,self.dla_up)
+        for p in self.base.parameters():
+            p.requires_grad = False
+        # print("Froze Base")
+        for p in self.dla_up.parameters():
+            p.requires_grad = False
+        # print("Froze DLA UP")
 
         if out_channel == 0:
             out_channel = channels[self.first_level]
@@ -444,6 +451,7 @@ class DLASeg(nn.Module):
         
         self.heads = heads
         for head in self.heads:
+            # print("HEAD ",head)
             classes = self.heads[head]
             if head_conv > 0:
               fc = nn.Sequential(
@@ -455,6 +463,10 @@ class DLASeg(nn.Module):
                     padding=final_kernel // 2, bias=True))
               if 'hm' in head:
                 fc[-1].bias.data.fill_(-2.19)
+                # fc.requires_grad_(False)
+                # print(fc)
+                for p in fc.parameters():
+                    p.requires_grad = False
               else:
                 fill_fc_weights(fc)
             else:

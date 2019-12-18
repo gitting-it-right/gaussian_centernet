@@ -68,6 +68,8 @@ class BaseTrainer(object):
           batch[k] = batch[k].to(device=opt.device, non_blocking=True)    
       output, loss, loss_stats = model_with_loss(batch)
       loss = loss.mean()
+      # print(loss)
+      # print(loss_stats)
       if phase == 'train':
         self.optimizer.zero_grad()
         loss.backward()

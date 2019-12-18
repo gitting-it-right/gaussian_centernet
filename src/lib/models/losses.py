@@ -148,6 +148,40 @@ class RegL1Loss(nn.Module):
     loss = loss / (mask.sum() + 1e-4)
     return loss
 
+
+class NLL(nn.Module):
+  def __init__(self):
+    super(NLL, self).__init__()
+  
+  def forward(self, output, mask, ind, target):
+    # print(output.shape, mask.shape, ind.shape, target.shape)
+    pred = _transpose_and_gather_feat(output, ind)
+    # print(pred.shape)
+    # print(mask,ind)
+    pred1 = pred[:,:,:2]
+    pred2 = pred[:,:,2:4]
+    mask = mask.unsqueeze(2).expand_as(pred1).float()
+    # loss = F.l1_loss(pred * mask, target * mask, reduction='elementwise_mean')
+    pred1_ = pred1*mask
+    pred2_ = pred2*mask
+    target_ = target*mask
+    eps = 1e-8
+    mean1,mean2,var1,var2 = pred1_[:,:,0], pred1_[:,:,1], pred2_[:,:,0], pred2_[:,:,1]
+    # print("Mean1 ",torch.min(mean1),torch.max(mean1))
+    # print("Mean2 ",torch.min(mean2),torch.max(mean2))
+    # print("var1 ",torch.min(var1),torch.max(var1))
+    # print("var2 ",torch.min(var2),torch.max(var2))
+    mean1 , mean2 = (mean1).clamp(min=0) + eps, (mean2).clamp(min=0) + eps
+    var1 , var2 = (var1).clamp(min=0) + eps, (var2).clamp(min=0) + eps
+    val1, val2 = target_[:,:,0], target_[:,:,1]
+    gaussian1 = torch.distributions.normal.Normal(mean1,var1)
+    gaussian2 = torch.distributions.normal.Normal(mean2,var2)
+    loss =  -gaussian1.log_prob(val1) - gaussian2.log_prob(val2)
+    # loss = F.l1_loss(pred * mask, target * mask, size_average=False)
+    # loss = loss / (mask.sum() + 1e-4)
+    return loss
+
+
 class NormRegL1Loss(nn.Module):
   def __init__(self):
     super(NormRegL1Loss, self).__init__()

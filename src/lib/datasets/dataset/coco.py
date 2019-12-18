@@ -79,7 +79,9 @@ class COCO(data.Dataset):
     print('==> initializing coco 2017 {} data.'.format(split))
     self.coco = coco.COCO(self.annot_path)
     self.images = self.coco.getImgIds()
-    self.num_samples = len(self.images)
+    self.images = self.images[:1000]
+    # self.num_samples = len(self.images)
+    self.num_samples = 1000
 
     print('Loaded {} {} samples'.format(split, self.num_samples))
 

@@ -16,6 +16,7 @@ from .base_trainer import BaseTrainer
 
 class CtdetLoss(torch.nn.Module):
   def __init__(self, opt):
+    # print("INIT")
     super(CtdetLoss, self).__init__()
     self.crit = torch.nn.MSELoss() if opt.mse_loss else FocalLoss()
     self.crit_reg = RegL1Loss() if opt.reg_loss == 'l1' else \
@@ -26,10 +27,12 @@ class CtdetLoss(torch.nn.Module):
     self.opt = opt
 
   def forward(self, outputs, batch):
+    # print("boo")
     opt = self.opt
     hm_loss, wh_loss, off_loss = 0, 0, 0
     for s in range(opt.num_stacks):
       output = outputs[s]
+      # print(output['hm'].shape,output['wh'].shape,output['reg'].shape)
       if not opt.mse_loss:
         output['hm'] = _sigmoid(output['hm'])
 
@@ -64,6 +67,9 @@ class CtdetLoss(torch.nn.Module):
             batch['ind'], batch['wh']) / opt.num_stacks
       
       if opt.reg_offset and opt.off_weight > 0:
+        # print(output['reg'].shape,batch['reg_mask'].shape,batch['ind'].shape,batch['reg'].shape)
+        # print("Offset regression  output = ",output['reg']," , batch reg_mask = ", batch['reg_mask']," , batch ind ",
+                            #  batch['ind'], " , batch reg = ",batch['reg'])
         off_loss += self.crit_reg(output['reg'], batch['reg_mask'],
                              batch['ind'], batch['reg']) / opt.num_stacks
         
